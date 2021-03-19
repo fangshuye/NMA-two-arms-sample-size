@@ -1,0 +1,27 @@
+studlab,treat1,treat2,TE,seTE
+1,No active control,Florfenicol,1.817766378,0.419820084
+2,No active control,Enrofloxacin,3.471966453,1.502792432
+3,No active control,Enrofloxacin,3.201584328,0.478134873
+4,No active control,Enrofloxacin,1.434530662,0.387877296
+5,No active control,Enrofloxacin,3.197471916,0.493882256
+6,No active control,Enrofloxacin,1.945910149,0.385449645
+7,No active control,Enrofloxacin,4.876287242,1.034026604
+8,No active control,Enrofloxacin,2.575878428,0.458672214
+9,No active control,Enrofloxacin,3.830192987,0.510448236
+10,No active control,Enrofloxacin,2.783273622,0.484387905
+11,No active control,Ceftiofur pin,0.675755438,0.4061591
+12,No active control,Enrofloxacin,4.137829674,0.645840483
+13,No active control,Enrofloxacin,1.434530662,0.387877296
+14,No active control,Enrofloxacin,3.197471916,0.493882256
+15,No active control,Enrofloxacin,1.945910149,0.385449645
+16,Tilmicosin,Florfenicol,1.278874112,0.331802518
+17,Tilmicosin,Florfenicol,-0.016171912,0.131455316
+18,No active control,Tilmicosin,1.586965057,0.454703255
+18,No active control,Tulathromycin,2.293851413,0.466124576
+18,Tulathromycin,Tilmicosin,-0.706886356,0.33395684
+19,No active control,Tilmicosin,1.894616855,0.431962358
+19,No active control,Tulathromycin,2.067799967,0.437031598
+19,Tulathromycin,Tilmicosin,-0.173183112,0.373487427
+20,No active control,Tilmicosin,2.157219243,0.440163793
+20,No active control,Tulathromycin,2.91275316,0.49420971
+20,Tulathromycin,Tilmicosin,-0.755533917,0.447093014
