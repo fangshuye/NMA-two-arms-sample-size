@@ -1,6 +1,6 @@
 # NMA-two-arms-sample-size
 
-R Shiny app[https://fangshu.shinyapps.io/CalSampleSize/]
+R Shiny app{https://fangshu.shinyapps.io/CalSampleSize/}
 
 1. sampledat.csv
 
