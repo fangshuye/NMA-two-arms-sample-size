@@ -15,8 +15,12 @@ R Shiny app: https://fangshu.shinyapps.io/CalSampleSize/
 
 
 2. app.R
+
+
    Main function for R shiny app. To run it successfully, SolveSampleSize.R is needed.
  
 3. SolveSampleSize.R
+
+
    Contains functions used for solve the optimization problems. 
 
