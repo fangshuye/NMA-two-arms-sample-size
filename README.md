@@ -13,3 +13,10 @@ R Shiny app: https://fangshu.shinyapps.io/CalSampleSize/
    - TE: treatment effect size (log odds ratio) between treat1 and treat2
    - seTE: standard error of the estimated TE
 
+
+2. app.R
+   Main function for R shiny app. To run it successfully, SolveSampleSize.R is needed.
+ 
+3. SolveSampleSize.R
+   Contains functions used for solve the optimization problems. 
+
