@@ -6,12 +6,12 @@ source(file = "SolveSampleSize.R")
 
 # contrast-level dat input only currently 
 ui <-
-    fluidPage(titlePanel("Sample Size Calculation to reach a predefined power for a future two-arm study, 
-                         based on the previous network"),
+    fluidPage(titlePanel("Sample Size Calculation to reach a predefined power for a future two-arm study (binary outcome), based
+                         on the previous network"),
               fluidRow(
                   
                   column(4,style="background-color:lightgoldenrodyellow",
-                         h4("Step1: Upload the existing evidence"),
+                         h4("Step1: Upload the existing evidence (Contrast-level data)"),
                          "(Please refer to the ",
                          tags$a(href="https://github.com/fangshuye/NMA-two-arms-sample-size/blob/main/sampledat.csv", 
                                 "sample dataset"),
@@ -37,12 +37,11 @@ ui <-
                   
                   column(4,style="background-color:seashell",
                          h4("Step3: Confirm the parameters"),
-                         radioButtons("howrisk",
-                                      "Which would you use to represent for the risks of the two treatments?",
-                                      c("I have other evidence or references to use and I want to enter the risks by myself" = "enter",
-                                        "I would like to use the effect size (log odds ratio) estimated by previous NMA and enter the baseline risk by myself" = "NMA"),
-                                      selected = "enter"),
-                         uiOutput("Risk"),
+                         uiOutput("treatment"), # select the treatment that you know the risk 
+                         uiOutput("Risk_above"), # enter the risk of the selected risk above
+                         htmlOutput("Risk_NMA"), # show the estimated risk of the other treatment by our previous NMA
+                         uiOutput("NMA_Enter"), # enter the risk of the other treatment if you don't want to use the estimated one
+                         uiOutput("Risk_Enter"), # the value you entered
                          numericInput("power_level","Predefind Power",step=0.000001,value = 0.8,max = 0.99999,min = 0.1),
                          h4("Step4: Enter the paramater to calculate the cost"),
                          radioButtons("cost",
@@ -58,7 +57,9 @@ ui <-
                          htmlOutput("txtOutput"),
                          tags$hr(),
                          h4("The optimal sample size for each treatment in a future trial"),
-                         tableOutput("tabOutput"))
+                         tableOutput("tabOutput"),
+                         h4("Summary"),
+                         htmlOutput("Summary"))
               ))
 
 server <- function(input, output,session) {
@@ -80,24 +81,6 @@ server <- function(input, output,session) {
             arms <- unique(c(dat$treat1,dat$treat2))
             list(nma_old = nma_old, arms = arms)
         }
-    })
-    
-    baseline <- reactive({
-        dat <- filedata()
-        if (!is.null(dat) && input$howrisk=='NMA'){
-            nma_old <- arm()$nma_old
-            trt1 <- input$choice1
-            trt2 <- input$choice2
-            
-            # get baseline risk
-            base_trt <- input$baseline_trt
-            lor_1 <- nma_old$TE.fixed[base_trt,trt1]
-            lor_2 <- nma_old$TE.fixed[base_trt,trt2]
-            p1 <- lor2prob(input$baseline_risk,lor_1)
-            p2 <- lor2prob(input$baseline_risk,lor_2)
-            list(p1 = p1, p2 = p2) 
-        }
-        
     })
     
     sigma_nma_old <- reactive({
@@ -158,35 +141,89 @@ server <- function(input, output,session) {
         }
     })
     
+    output$treatment <- renderUI({
+        
+        dat <- filedata()
+        
+        if(!is.null(dat)){
+            radioButtons(inputId = "baseline",
+                         label = "Please select one treatment that you know the risk",
+                         choices = c(name_trt1(),name_trt2()),
+                         selected = character(0))
+        }
+    })
     
-    output$Risk <- renderUI({
+    name_trt <- reactive({
+        dat <- filedata()
+        if (!is.null(dat)){
+            list(base = input$baseline, 
+                 second = setdiff(c(name_trt1(),name_trt2()),input$baseline))
+        }
+    })
+    
+    output$Risk_above <- renderUI({
+        
+        dat <- filedata()
+        
+        if(!is.null(dat)){
+            numericInput("risk1",paste0("Risk of ",name_trt()$base),
+                         step=0.000001,value = 0.20,max = 0.99999,min = 0.00001)
+        }
+    })
+    
+    p2 <- reactive({
+        dat <- filedata()
+        if (!is.null(dat)){
+            nma_old <- arm()$nma_old
+            trt1 <- name_trt1()
+            trt2 <- name_trt2()
+            
+            # get baseline risk
+            base_trt <- name_trt()$base
+            lor_2 <- nma_old$TE.fixed[base_trt,trt2]
+            lor2prob(input$risk1,lor_2)
+        }
+        
+    })
+    
+
+    
+    output$Risk_NMA  = renderUI({
+        dat <- filedata()
+        if(!is.null(dat)){
+            str1 <- paste0("The risk of ",name_trt()$second," estimated by the previous network is ",
+                           round(p2(),4))
+            HTML(str1)
+        }
+    })
+    
+    output$NMA_Enter <- renderUI({
+        
+        dat <- filedata()
+        
+        if(!is.null(dat)){
+            radioButtons("howrisk",
+                         paste0("Which would you use for the risk of ",name_trt()$second),
+                         c("Enter/Define the risk" = "enter",
+                           "Use the value above directly (estimated by previous NMA)" = "NMA"),
+                         selected = "enter")
+        }
+    })
+    
+    
+    output$Risk_Enter <- renderUI({
         if(input$howrisk=='enter'){
-            tagList(
-                numericInput("risk1",paste0("Risk of ",name_trt1()),
-                             step=0.000001,value = 0.20,max = 0.99999,min = 0.00001),
-                numericInput("risk2",paste0("Risk of ",name_trt2()),
+                numericInput("risk2",paste0("Risk of ",name_trt()$second),
                              step=0.000001,value = 0.25,max = 0.99999,min = 0.00001)
-            )
-        }else{
-            tagList(
-                radioButtons(inputId="baseline_trt", 
-                             label="Please select the baseline treatment in your previous NMA",
-                             choices = arm()$arms),
-                helpText("Note: you can choose any treatment in your upload file as baseline treatment 
-               as long as you can get an estimation or observed result of the risk of the baseline 
-               treatment you seleced"),
-                numericInput("baseline_risk","Risk of the baseline treatment you selected above",
-                             step=0.000001,value = 0.15,max = 0.99999,min = 0.00001)
-            )
         }
     })
 
     output$cost_number <- renderUI({
         if(input$cost=="Yes"){
             tagList(
-                numericInput("cost1",paste0("Cost($) per treatment(",name_trt1(),")"),
+                numericInput("cost1",paste0("Cost($) per treatment(",name_trt()$base,")"),
                              step=0.000001,value = 2,min = 0.00001),
-                numericInput("cost2",paste0("Cost($) per treatment(",name_trt2(),")"),
+                numericInput("cost2",paste0("Cost($) per treatment(",name_trt()$second,")"),
                              step=0.000001,value = 2,min = 0.00001),
                 numericInput("cost3","Cost($) per animal",
                              step=0.000001,value = 2,min = 0.00001)
@@ -201,33 +238,39 @@ server <- function(input, output,session) {
             str <- paste0("Standard error of the estimated effect size 
                           between selected two treatments by the previous network is ",
                           round(sigma_nma_old(),4))
-          if(input$howrisk=='NMA'){
-              str1 <- paste0("The risk of ",name_trt1()," estimated by the previous network is ",
-                             round(baseline()$p1,4))
-              str2 <- paste0("The risk of ",name_trt2()," estimated by the previous network is ",
-                             round(baseline()$p2,4))
-          }else{
-              str1 <- NULL
-              str2 <- NULL
-          }
-            
-          HTML(paste(str, str1, str2, sep = '<br/>'))
+          HTML(str)
         }
     })
     
-    output$tabOutput <- function() {
+    
+    SampleSize <- reactive({
         dat <- filedata()
-        if(!is.null(dat)){
+        if (!is.null(dat)){
             sigma <- sigma_nma_old()
             power_level <- input$power_level
             
-            risk1 <- ifelse(input$howrisk=='enter',input$risk1,baseline()$p1)
-            risk2 <- ifelse(input$howrisk=='enter',input$risk2,baseline()$p2)
+            risk1 <- input$risk1
+            risk2 <- ifelse(input$howrisk=='enter',input$risk2,p2())
             
             samplesize_even = rep(SolveSampleSize_Withprev_equal(risk1,risk2,sigma,power_level)/2,2)
             samplesize = SolveSampleSize_Withprev(risk1,risk2,sigma,power_level)
             samplesize_single = SolveSampleSize_Single(risk1,risk2,power_level)
             samplesize_single_even = rep(SolveSampleSize_Single_equal(risk1,risk2,power_level)/2,2)
+            list(NMA_even = samplesize_even,
+                 NMA = samplesize,
+                 Single_even = samplesize_single_even,
+                 Single = samplesize_single)
+        }
+        
+    })
+    
+    output$tabOutput <- function() {
+        dat <- filedata()
+        if(!is.null(dat)){
+            samplesize_even <- SampleSize()$NMA_even
+            samplesize <- SampleSize()$NMA
+            samplesize_single_even <- SampleSize()$Single_even
+            samplesize_single <- SampleSize()$Single
             
             output_dat <- data.frame(n1 = c(samplesize_even[1],samplesize[1],
                                             samplesize_single_even[1],samplesize_single[1]),
@@ -239,7 +282,7 @@ server <- function(input, output,session) {
             collapse_rows_dt <- cbind(C1 = c(rep("with previous NMA", 2), rep("isolation", 2)),
                                       C2 = c("even","uneven","even","uneven"),
                                       output_dat)
-            colnames(collapse_rows_dt) <- c("","",name_trt1(),name_trt2(),"Total")
+            colnames(collapse_rows_dt) <- c("","",name_trt()$base,name_trt()$second,"Total")
             if(input$cost=="Yes"){
                 cost <- c(input$cost1,input$cost2,input$cost3)
                 costs <- output_dat$n1*cost[1] + output_dat$n2*cost[2] + output_dat$total*cost[3]
@@ -263,7 +306,32 @@ server <- function(input, output,session) {
             
         }
     }
- 
+    
+    output$Summary  = renderUI({
+        dat <- filedata()
+        if(!is.null(dat)){
+            samplesize_even <- SampleSize()$NMA_even
+            samplesize <- SampleSize()$NMA
+            samplesize_single_even <- SampleSize()$Single_even
+            samplesize_single <- SampleSize()$Single
+            
+            size1 <- paste0("With previous NMA, ","the optimal sample sizes for ", 
+                            name_trt()$base," and ",name_trt()$second, " are ",
+                            samplesize[1], " and ", samplesize[2], " respectively.",
+                            " If we want to even allocate the sample size, ",
+                            "the optimal sample size for each treatment is ", 
+                            samplesize_even[1],".")
+            
+            size2 <- paste0("Without previous NMA (analyze in isolation), ","the optimal sample sizes for ", 
+                            name_trt()$base," and ",name_trt()$second, " are ",
+                            samplesize_single[1], " and ", samplesize_single[2], " respectively.",
+                            " If we want to even allocate the sample size, ",
+                            "the optimal sample size for each treatment is ", 
+                            samplesize_single_even[1],".")
+            
+            HTML(paste(size1, size2, sep = '<br/>'))
+        }
+    })
         
 }
 
