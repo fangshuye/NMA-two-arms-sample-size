@@ -1,6 +1,6 @@
 R Shiny app: https://fangshu.shinyapps.io/CalSampleSize/
 
-1. sampledat.csv
+1. sampledat.csv (https://github.com/fangshuye/NMA-two-arms-sample-size/blob/main/sampledat.csv)
 
 a sample dataset for investigators to refer; when using the shiny app to calculate the sample size, please upload your dataset using the same format as sampledat.csv
 
