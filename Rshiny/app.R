@@ -329,7 +329,7 @@ server <- function(input, output,session) {
             collapse_rows_dt <- cbind(C1 = c(rep("with existing NMA", 2), rep("isolation", 2)),
                                       C2 = c("even","uneven","even","uneven"),
                                       output_dat)
-            colnames(collapse_rows_dt) <- c("","",name_trt()$base,name_trt()$second,"Total")
+            colnames(collapse_rows_dt) <- c("","",name_trt1_s(),name_trt2_s(),"Total")
             if(input$cost_s=="Yes"){
                 cost <- c(input$cost1_s,input$cost2_s,input$cost3_s)
                 costs <- output_dat$n1*cost[1] + output_dat$n2*cost[2] + output_dat$total*cost[3]
@@ -603,7 +603,7 @@ server <- function(input, output,session) {
             collapse_rows_dt <- cbind(C1 = c(rep("with existing NMA", 2), rep("isolation", 2)),
                                       C2 = c("even","uneven","even","uneven"),
                                       output_dat)
-            colnames(collapse_rows_dt) <- c("","",name_trt()$base,name_trt()$second,"Total")
+            colnames(collapse_rows_dt) <- c("","",name_trt1(),name_trt2(),"Total")
             if(input$cost=="Yes"){
                 cost <- c(input$cost1,input$cost2,input$cost3)
                 costs <- output_dat$n1*cost[1] + output_dat$n2*cost[2] + output_dat$total*cost[3]
