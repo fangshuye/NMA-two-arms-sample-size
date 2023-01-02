@@ -83,7 +83,7 @@ SolveSampleSize_Withprev_equal <- function(p_CEFTP,p_TILD_c,sigma,power_level){
   }else{
     n <- c(solution_temp_int+1,solution_temp_int-1)
     n <- n[n>0]
-    power <- power_single(n)
+    power <- power_withprev(n)
     dat_para <- data.frame(n,power)
     dat_para <- dat_para[dat_para$power>=power_level,]
     res <- min(dat_para$n)
