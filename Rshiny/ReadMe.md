@@ -15,8 +15,5 @@ seTE: standard error of the estimated TE
 
 2. app.R
 
-Main function for R shiny app. To run it successfully, SolveSampleSize.R is needed.
+Main function for R shiny app.
 
-3. SolveSampleSize.R
-
-Contains functions used for solve the optimization problems.
