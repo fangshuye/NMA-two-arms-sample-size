@@ -1,8 +1,7 @@
 library("netmeta")
-library("NlcOptim")
+library("OssaNMA")
 library("kableExtra")
 library("dplyr")
-source(file = "SolveSampleSize.R")
 
 # contrast-level dat input only currently 
 ui <-
@@ -194,7 +193,7 @@ server <- function(input, output,session) {
         dat_s <- filedata_s()
         if(!is.null(dat_s) & !is.null(input$choice1_s) & !is.null(input$choice2_s)){
             radioButtons(inputId = "baseline_s",
-                         label = "Please select one treatment that you know the risk",
+                         label = "Please select one treatment that you know the expected risk of the outcome",
                          choices = c(name_trt1_s(),name_trt2_s()),
                          selected = name_trt1_s())
         }
@@ -211,7 +210,7 @@ server <- function(input, output,session) {
     output$Risk_above_s <- renderUI({
         dat_s <- filedata_s()
         if(!is.null(dat_s) & !is.null(input$choice1_s) & !is.null(input$choice2_s)){
-            numericInput("risk1_s",paste0("Risk of ",name_trt_s()$base),
+            numericInput("risk1_s",paste0("Risk of the outcome in the first treatment \"",name_trt_s()$base, "\" as a proportion between 0-1"),
                          step=0.000001,value = 0.20,max = 0.99999,min = 0.00001)
         }
     })
@@ -226,7 +225,7 @@ server <- function(input, output,session) {
             # get baseline risk
             base_trt <- name_trt_s()$base
             lor_2 <- nma_old$TE.fixed[base_trt,trt2]
-            lor2prob(input$risk1_s,lor_2)
+            input$risk1_s/(input$risk1_s + exp(lor_2)*(1-input$risk1_s))
         }
         
     })
@@ -236,7 +235,7 @@ server <- function(input, output,session) {
     output$Risk_NMA_s  = renderUI({
         dat_s <- filedata_s()
         if(!is.null(dat_s) & !is.null(input$choice1_s) & !is.null(input$choice2_s)){
-            str1 <- paste0("The risk of ",name_trt_s()$second," estimated by the existing network is ",
+            str1 <- paste0("The risk of the outcome in the \"",name_trt_s()$second,"\" treated group is estimated by the existing network is ",
                            round(p2_s(),4))
             HTML(str1)
         }
@@ -259,7 +258,7 @@ server <- function(input, output,session) {
         dat_s <- filedata_s()
         if(!is.null(dat_s) & !is.null(input$choice1_s) & !is.null(input$choice2_s) & !is.null(input$howrisk_s)){
             if(input$howrisk_s=='enter'){
-                numericInput("risk2_s",paste0("Risk of ",name_trt_s()$second),
+                numericInput("risk2_s",paste0("Risk of the outcome in the second treatment \"",name_trt_s()$second, "\" as a proportion between 0-1"),
                              step=0.000001,value = 0.25,max = 0.99999,min = 0.00001)
             }
         }
@@ -299,10 +298,22 @@ server <- function(input, output,session) {
             risk1 <- input$risk1_s
             risk2 <- ifelse(input$howrisk_s=='enter',input$risk2_s,p2_s())
             
-            samplesize_even = rep(SolveSampleSize_Withprev_equal(risk1,risk2,sigma,power_level)/2,2)
-            samplesize = SolveSampleSize_Withprev(risk1,risk2,sigma,power_level)
-            samplesize_single = SolveSampleSize_Single(risk1,risk2,power_level)
-            samplesize_single_even = rep(SolveSampleSize_Single_equal(risk1,risk2,power_level)/2,2)
+            samplesize_even = ssnma(p1 = risk1, p2 = risk2, enma_sigma = sigma, 
+                                    power.level = power_level, 
+                                    sig.level = 0.05, 
+                                    method = "with", allocation = "even")$sample_size
+            samplesize = ssnma(p1 = risk1, p2 = risk2, enma_sigma = sigma, 
+                               power.level = power_level, 
+                               sig.level = 0.05, 
+                               method = "with", allocation = "uneven")$sample_size
+            samplesize_single = ssnma(p1 = risk1, p2 = risk2, enma_sigma = 0, 
+                                      power.level = power_level, 
+                                      sig.level = 0.05, 
+                                      method = "without", allocation = "uneven")$sample_size
+            samplesize_single_even = ssnma(p1 = risk1, p2 = risk2, enma_sigma = 0, 
+                                           power.level = power_level, 
+                                           sig.level = 0.05, 
+                                           method = "without", allocation = "even")$sample_size
             list(NMA_even = samplesize_even,
                  NMA = samplesize,
                  Single_even = samplesize_single_even,
@@ -464,7 +475,7 @@ server <- function(input, output,session) {
         
         if(!is.null(dat) & !is.null(input$choice1) & !is.null(input$choice2)){
             radioButtons(inputId = "baseline",
-                         label = "Please select one treatment that you know the risk",
+                         label = "Please select one treatment that you know the expected risk of the outcome",
                          choices = c(name_trt1(),name_trt2()),
                          selected = name_trt1())
         }
@@ -483,7 +494,7 @@ server <- function(input, output,session) {
         dat <- filedata()
         
         if(!is.null(dat) & !is.null(input$choice1) & !is.null(input$choice2)){
-            numericInput("risk1",paste0("Risk of ",name_trt()$base),
+            numericInput("risk1",paste0("Risk of the outcome in the first treatment \"",name_trt()$base, "\" as a proportion between 0-1"),
                          step=0.000001,value = 0.20,max = 0.99999,min = 0.00001)
         }
     })
@@ -498,7 +509,7 @@ server <- function(input, output,session) {
             # get baseline risk
             base_trt <- name_trt()$base
             lor_2 <- nma_old$TE.fixed[base_trt,trt2]
-            lor2prob(input$risk1,lor_2)
+            input$risk1/(input$risk1 + exp(lor_2)*(1-input$risk1))
         }
         
     })
@@ -508,7 +519,7 @@ server <- function(input, output,session) {
     output$Risk_NMA  = renderUI({
         dat <- filedata()
         if(!is.null(dat) & !is.null(input$choice1) & !is.null(input$choice2)){
-            str1 <- paste0("The risk of ",name_trt()$second," estimated by the existing network is ",
+            str1 <- paste0("The risk of the outcome in the \"",name_trt()$second,"\" treated group is estimated by the existing network is ",
                            round(p2(),4))
             HTML(str1)
         }
@@ -533,7 +544,7 @@ server <- function(input, output,session) {
         
         if(!is.null(dat) & !is.null(input$choice1) & !is.null(input$choice2) & !is.null(input$howrisk)){
             if(input$howrisk=='enter'){
-                numericInput("risk2",paste0("Risk of ",name_trt()$second),
+                numericInput("risk2",paste0("Risk of the outcome in the second treatment \"",name_trt()$second, "\" as a proportion between 0-1"),
                              step=0.000001,value = 0.25,max = 0.99999,min = 0.00001)
             }
         }
@@ -573,10 +584,22 @@ server <- function(input, output,session) {
             risk1 <- input$risk1
             risk2 <- ifelse(input$howrisk=='enter',input$risk2,p2())
             
-            samplesize_even = rep(SolveSampleSize_Withprev_equal(risk1,risk2,sigma,power_level)/2,2)
-            samplesize = SolveSampleSize_Withprev(risk1,risk2,sigma,power_level)
-            samplesize_single = SolveSampleSize_Single(risk1,risk2,power_level)
-            samplesize_single_even = rep(SolveSampleSize_Single_equal(risk1,risk2,power_level)/2,2)
+            samplesize_even = ssnma(p1 = risk1, p2 = risk2, enma_sigma = sigma, 
+                                    power.level = power_level, 
+                                    sig.level = 0.05, 
+                                    method = "with", allocation = "even")$sample_size
+            samplesize =ssnma(p1 = risk1, p2 = risk2, enma_sigma = sigma, 
+                              power.level = power_level, 
+                              sig.level = 0.05, 
+                              method = "with", allocation = "uneven")$sample_size
+            samplesize_single = ssnma(p1 = risk1, p2 = risk2, enma_sigma = 0, 
+                                      power.level = power_level, 
+                                      sig.level = 0.05, 
+                                      method = "without", allocation = "uneven")$sample_size
+            samplesize_single_even = ssnma(p1 = risk1, p2 = risk2, enma_sigma = 0, 
+                                           power.level = power_level, 
+                                           sig.level = 0.05, 
+                                           method = "without", allocation = "even")$sample_size
             list(NMA_even = samplesize_even,
                  NMA = samplesize,
                  Single_even = samplesize_single_even,
