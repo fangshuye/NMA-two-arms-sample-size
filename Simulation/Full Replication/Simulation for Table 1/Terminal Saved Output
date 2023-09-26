@@ -1,0 +1,63 @@
+Last login: Sat May  6 15:39:24 on ttys000
+fangshu@Fangshus-MacBook-Air ~ % ssh fye@pronto.las.iastate.edu
+fye@pronto.las.iastate.edu's password: 
+Just getting started?
+https://rit.las.iastate.edu/guides/pronto/getting_started/
+
+Questions?
+https://rit.las.iastate.edu/guides/pronto/troubleshooting/reporting_issues/
+
+Need to copy files?
+Use prontodtn.las.iastate.edu
+
+***********************************************************
+Note: /work is not backed up. It is scratch space for compute
+runs and has no guarantee of data persistence.
+
+Do not rely on /work as your only copy of important files.
+
+Always copy important data to a backed-up system like /lss.
+***********************************************************
+==========================ATTENTION========================
+The Pronto cluster is currently scheduled for mainteinance
+on 2023-05-15. If your job will not complete before maint
+begins you may see jobs held with the reason:
+"Reserved for maintenance". Due to timeslicing, jobs with
+a timelimit longer than twice the current time between now
+and when maintenance begins will be held. If your job is
+held for this reason, and you think it will finish sooner
+than the timelimit you've given it, feel free to decrease
+the timelimit.
+
+We also plan to rebuild the current software stack to
+account for changes being made to the backing hardware
+in the cluster. The current software stack will remain
+available.
+===========================================================
+
+Last login: Sat May  6 19:39:50 2023 from 2610:130:100:aaaa::41:6ac3
+[fye@pronto ~]$ cd /work/LAS/chwang-lab/fye/'Simulation for Table 1'
+[fye@pronto Simulation for Table 1]$ ls
+data                  functions.R  sim_each_row.R   table
+data_para_generate.R  run.sh       sim_each_row.sh
+[fye@pronto Simulation for Table 1]$ bash run.sh
+Submitted batch job 1028267
+Submitted batch job 1028268
+Submitted batch job 1028269
+Submitted batch job 1028270
+Submitted batch job 1028271
+Submitted batch job 1028272
+Submitted batch job 1028273
+Submitted batch job 1028274
+Submitted batch job 1028275
+Submitted batch job 1028276
+Submitted batch job 1028277
+Submitted batch job 1028278
+Submitted batch job 1028279
+Submitted batch job 1028280
+Submitted batch job 1028281
+Submitted batch job 1028282
+Submitted batch job 1028283
+Submitted batch job 1028284
+Submitted batch job 1028285
+Submitted batch job 1028286
